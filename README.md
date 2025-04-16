@@ -71,6 +71,8 @@ During the initial set-up process, you will also create a `swarm.pem` file which
 
 If you are running multiple nodes, and want to track progress on-chain (i.e. not just run RL Swarm itself and train a model), you must sign up again for each node - do not use the same `swarm.pem`, `userApiKey`, `userData.json`, `email address`, or copy the data between the nodes. If you do so, your progress won't be tracked on-chain. If you do any of these things, your node will work fine and train from the swarm however, but this will not be reflected on chain.
 
+**Please note**: if you are using a fork of this repo, or a service organised by someone else (e.g. a 'one click deployment' provider) the identity management flow below is not guaranteed.
+
 ### What this means
 In the following two scenarios, everything will work (i.e. you will have an on-chain identity linked with your RL Swarm peer training):
 
