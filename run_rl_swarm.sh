@@ -37,10 +37,15 @@ CPU_ONLY=${CPU_ONLY:-""}
 ORG_ID=${ORG_ID:-""}
 
 GREEN_TEXT="\033[32m"
+BLUE_TEXT="\033[34m"
 RESET_TEXT="\033[0m"
 
 echo_green() {
     echo -e "$GREEN_TEXT$1$RESET_TEXT"
+}
+
+echo_blue() {
+    echo -e "$BLUE_TEXT$1$RESET_TEXT"
 }
 
 ROOT_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
@@ -78,6 +83,21 @@ if [ "$CONNECT_TO_TESTNET" = "True" ]; then
     cd modal-login
     # Check if the yarn command exists; if not, install Yarn.
     source ~/.bashrc
+
+    # Node.js + NVM setup
+    if ! command -v node >/dev/null 2>&1; then
+        echo "Node.js not found. Installing NVM and latest Node.js..."
+        export NVM_DIR="$HOME/.nvm"
+        if [ ! -d "$NVM_DIR" ]; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        fi
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+       nvm install node
+    else
+        echo "Node.js is already installed: $(node -v)"
+    fi
+
     if ! command -v yarn > /dev/null 2>&1; then
         # Detect Ubuntu (including WSL Ubuntu) and install Yarn accordingly
         if grep -qi "ubuntu" /etc/os-release 2> /dev/null || uname -r | grep -qi "microsoft"; then
@@ -162,6 +182,8 @@ else
 fi
 
 echo_green ">> Good luck in the swarm!"
+echo_blue ">> Post about rl-swarm on X/twitter! --> https://tinyurl.com/swarmtweet"
+echo_blue ">> And remember to star the repo on GitHub! --> https://github.com/gensyn-ai/rl-swarm"
 
 if [ -n "$ORG_ID" ]; then
     python -m hivemind_exp.gsm8k.train_single_gpu \
