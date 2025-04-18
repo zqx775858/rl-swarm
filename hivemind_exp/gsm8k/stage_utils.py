@@ -100,7 +100,7 @@ def merged_prev_stage_datasets(
 
     # Merge sample lists.
     for outputs in q_to_keyed_items.values():
-        merged = merge_fn(outputs)
+        merged = merge_fn(outputs, log_tag=log_tag)
         merged_qs.append(merged)
 
     return samples_fn(merged_qs)
