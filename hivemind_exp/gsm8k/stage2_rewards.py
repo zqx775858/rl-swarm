@@ -15,6 +15,8 @@ def extract_xml_identity(text: str) -> str:
 
 
 def extract_xml_ids(text: str) -> str:
+    if not isinstance(text, str):
+        return []
     ids = []
     ids_raw = text.split("<student>")[1:]
     for id in ids_raw:
@@ -29,6 +31,8 @@ def extract_original_question(text: str) -> str:
 
 
 def extract_answers(text: str) -> str:
+    if not isinstance(text, str):
+        return {}
     answers = {}
     raw = text.split("<student>")[1:]
     for a in raw:
