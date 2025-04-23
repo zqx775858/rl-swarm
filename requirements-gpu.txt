@@ -1,11 +1,10 @@
-#accelerate
 colorlog
 datasets
-#deepspeed
+hivemind @ git+https://github.com/learning-at-home/hivemind@1.11.11
 hf-transfer
 peft
-protobuf==5.29.0
 tensorboard
 transformers>=4.46.0
 trl==0.15.2
+vllm==0.7.2
 web3

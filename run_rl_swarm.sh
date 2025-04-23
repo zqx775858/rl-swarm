@@ -67,14 +67,14 @@ trap cleanup EXIT
 
 echo -e "\033[38;5;224m"
 cat << "EOF"
-    ██████  ██            ███████ ██     ██  █████  ██████  ███    ███ 
-    ██   ██ ██            ██      ██     ██ ██   ██ ██   ██ ████  ████ 
-    ██████  ██      █████ ███████ ██  █  ██ ███████ ██████  ██ ████ ██ 
-    ██   ██ ██                 ██ ██ ███ ██ ██   ██ ██   ██ ██  ██  ██ 
-    ██   ██ ███████       ███████  ███ ███  ██   ██ ██   ██ ██      ██ 
-    
-    From Gensyn  
-                                                                
+    ██████  ██            ███████ ██     ██  █████  ██████  ███    ███
+    ██   ██ ██            ██      ██     ██ ██   ██ ██   ██ ████  ████
+    ██████  ██      █████ ███████ ██  █  ██ ███████ ██████  ██ ████ ██
+    ██   ██ ██                 ██ ██ ███ ██ ██   ██ ██   ██ ██  ██  ██
+    ██   ██ ███████       ███████  ███ ███  ██   ██ ██   ██ ██      ██
+
+    From Gensyn
+
 EOF
 
 while true; do
@@ -97,7 +97,7 @@ if [ "$CONNECT_TO_TESTNET" = "True" ]; then
     source ~/.bashrc
 
     # Node.js + NVM setup
-    if ! command -v node >/dev/null 2>&1; then
+    if ! command -v node > /dev/null 2>&1; then
         echo "Node.js not found. Installing NVM and latest Node.js..."
         export NVM_DIR="$HOME/.nvm"
         if [ ! -d "$NVM_DIR" ]; then
@@ -105,7 +105,7 @@ if [ "$CONNECT_TO_TESTNET" = "True" ]; then
         fi
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-       nvm install node
+        nvm install node
     else
         echo "Node.js is already installed: $(node -v)"
     fi
@@ -130,14 +130,14 @@ if [ "$CONNECT_TO_TESTNET" = "True" ]; then
     SERVER_PID=$!  # Store the process ID
     echo "Started server process: $SERVER_PID"
     sleep 5
-    
+
     # Try to open the URL in the default browser
-    if open http://localhost:3000 2>/dev/null; then
+    if open http://localhost:3000 2> /dev/null; then
         echo_green ">> Successfully opened http://localhost:3000 in your default browser."
     else
         echo ">> Failed to open http://localhost:3000. Please open it manually."
     fi
-    
+
     cd ..
 
     echo_green ">> Waiting for modal userData.json to be created..."
@@ -163,23 +163,15 @@ if [ "$CONNECT_TO_TESTNET" = "True" ]; then
     done
 fi
 
-pip_install() {
-    pip install --disable-pip-version-check -q -r "$1"
-}
-
 echo_green ">> Getting requirements..."
-pip_install "$ROOT"/requirements-hivemind.txt
-pip_install "$ROOT"/requirements.txt
 
-if ! command -v nvidia-smi &> /dev/null; then
-    # You don't have a NVIDIA GPU
-    CONFIG_PATH="$ROOT/hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml"
-elif [ -n "$CPU_ONLY" ]; then
-    # ... or we don't want to use it
-    CONFIG_PATH="$ROOT/hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml"
+if [ -n "$CPU_ONLY" ] || ! command -v nvidia-smi &> /dev/null; then
+    # CPU-only mode or no NVIDIA GPU found
+    pip install -r "$ROOT"/requirements-cpu.txt
+    CONFIG_PATH="$ROOT/hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml" # TODO: Fix naming.
 else
     # NVIDIA GPU found
-    pip_install "$ROOT"/requirements_gpu.txt
+    pip install -r "$ROOT"/requirements-gpu.txt
     CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml"
 fi
 
