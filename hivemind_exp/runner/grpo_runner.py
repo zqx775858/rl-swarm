@@ -16,6 +16,7 @@ from hivemind_exp.trainer.hivemind_grpo_trainer import HivemindGRPOTrainer
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class GRPOArguments:
     # Hivemind arguments
@@ -32,7 +33,7 @@ class GRPOArguments:
     number_of_data_samples: int = 50000
     public_maddr: str | None = None
 
-    #Hugging Face Hub arguments
+    # Hugging Face Hub arguments
     hf_token: str | None = None
 
 
@@ -107,7 +108,7 @@ class GRPORunner:
         ############################
         # Log into HF hub if wanted
         ############################
-        if (grpo_args.hf_token not in [None, "None"]):
+        if grpo_args.hf_token not in [None, "None"]:
             training_args.push_to_hub_token = grpo_args.hf_token
             login(token=training_args.push_to_hub_token, add_to_git_credential=True)
         else:

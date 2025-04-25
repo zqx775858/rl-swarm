@@ -85,7 +85,7 @@ def extract_answers(text: str) -> dict:
         raw = text.split(
             "  \nAfter comparing these answers, the following feedback was given about which answer is best: \n"
         )[0].split("<student>")[1:]
-        
+
         for a in raw:
             id = a.split("</student>")[0].strip()
             ans = a.split("</student> said \n")[-1].strip()
@@ -93,7 +93,7 @@ def extract_answers(text: str) -> dict:
     except Exception as e:
         # In case of any parsing errors, return empty dict
         return {}
-        
+
     return answers
 
 
@@ -102,7 +102,7 @@ def count_xml(text) -> float:
         return 0.0
     if not isinstance(text, str):
         return 0.0
-    
+
     count = 0.0
     if text.count("<summarize_feedback>\n") == 1:
         count += 0.125
@@ -136,7 +136,7 @@ def swarm_majority(choices):
         return []
     if len(choices) == 0:
         return []
-    
+
     votes = {}
     max_votes = 0
     for c in choices:
@@ -146,7 +146,7 @@ def swarm_majority(choices):
             votes[c] = 1
         if votes[c] > max_votes:
             max_votes = votes[c]
-    
+
     majority = []
     for c in votes:
         if votes[c] >= max_votes:
@@ -163,7 +163,7 @@ def consensus_reward_func(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         p = prompts[0][-1]["content"]
@@ -200,7 +200,7 @@ def question_recreation_reward_func(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         p = prompts[0][-1]["content"]
@@ -234,7 +234,7 @@ def concensus_correctness_reward_func(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         p = prompts[0][-1]["content"]
@@ -251,8 +251,12 @@ def concensus_correctness_reward_func(
     for r in extracted_responses:
         cur_reward = 0
         if r in agent_answers:
-             # Compare only when there is a correct answer
-            if correct_answer is not None and stage1_rewards.extract_xml_answer(agent_answers[r]) == correct_answer:
+            # Compare only when there is a correct answer
+            if (
+                correct_answer is not None
+                and stage1_rewards.extract_xml_answer(agent_answers[r])
+                == correct_answer
+            ):
                 cur_reward += 1.0
             if stage1_rewards.extract_xml_answer(agent_answers[r]).isdigit():
                 cur_reward += 0.5
@@ -314,7 +318,7 @@ def final_correctness_reward_func(
         return [0.0]
     if answer is None or not answer or not isinstance(answer, list):
         return [0.0] * len(completions)
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         p = prompts[0][-1]["content"]
@@ -324,7 +328,7 @@ def final_correctness_reward_func(
         return [0.0] * len(completions)
     # If answer is None, we don't have a correct answer to compare to
     if answer is None:
-       return [0.0] * len(extracted_responses)
+        return [0.0] * len(extracted_responses)
     if (random.random() < 0.01) and logging:  # 1% chance to write samples into a file
         os.makedirs(
             f"model_output_samples/multi_stage_gsm8k_samples_from_{os.getenv('HOSTNAME')}",
@@ -351,9 +355,9 @@ def strict_format_reward_func(
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     pattern = r"^<summarize_feedback>\n.*?\n</summarize_feedback>\n<majority>\n.*?\n</majority>\n<question>\n.*?\n</question>\n<think>\n.*?\n</think>\n<answer>\n.*?\n</answer>\n$"
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         matches = [re.match(pattern, r) for r in responses]
@@ -384,9 +388,9 @@ def soft_format_reward_func(
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     pattern = r"<summarize_feedback>.*?</summarize_feedback>\s*<majority>.*?</majority>\s*<question>.*?</question>\s*<think>.*?</think>\s*<answer>.*?</answer>"
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         matches = [re.match(pattern, r) for r in responses]
@@ -416,7 +420,7 @@ def xmlcount_reward_func(
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     try:
         contents = [completion[0]["content"] for completion in completions]
     except (IndexError, KeyError, TypeError):
@@ -460,7 +464,7 @@ def hivemind_cumulative_reward(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     # Calculate individual rewards
     consensus_reward = consensus_reward_func(prompts, completions, logging=logging)
     concensus_correctness = concensus_correctness_reward_func(

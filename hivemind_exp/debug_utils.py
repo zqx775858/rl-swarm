@@ -4,6 +4,7 @@ import psutil
 
 DIVIDER = "[---------] SYSTEM INFO [---------]"
 
+
 def print_system_info():
     print(DIVIDER)
     print()

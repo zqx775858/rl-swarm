@@ -121,7 +121,7 @@ class HivemindGRPOTrainer:
         self.stage_data = stage_data
 
         self.config = config
-        self.config.dataloader_num_workers=0  # Default: 8+
+        self.config.dataloader_num_workers = 0  # Default: 8+
         assert self.config.output_dir
         self.config.output_dir += f"-{get_name_from_peer_id(self.node.key, True)}"  # TODO: Add animal name to save path in more appropriate spot
         self.model = model

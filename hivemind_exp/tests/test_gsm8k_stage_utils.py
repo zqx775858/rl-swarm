@@ -291,6 +291,7 @@ def test_gsm8k_follower_no_outputs(tmp_path):
     outputs = get_dht_value(dht, key=outputs_key(CK, 0, 0), latest=True)
     assert outputs is not None
 
+
 def test_gsm8k_delayed_join(tmp_path):
     node0 = HivemindNode.coordinator("test", CK)
     node1 = HivemindNode("test", "0")

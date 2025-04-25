@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 class TestnetGRPOArguments:
     # Mutually exclusive.
     wallet_private_key: str | None = None  # EOA wallet private key.
-    modal_org_id: str | None = None # Modal organization ID.
+    modal_org_id: str | None = None  # Modal organization ID.
+
 
 class TestnetGRPORunner(GRPORunner):
     def __init__(self, coordinator: SwarmCoordinator) -> None:
@@ -36,7 +37,9 @@ class TestnetGRPORunner(GRPORunner):
     def setup_dht(self, grpo_args):
         initial_peers = grpo_args.initial_peers
 
-        dht = hivemind.DHT(start=True, startup_timeout=30, **self._dht_kwargs(grpo_args))
+        dht = hivemind.DHT(
+            start=True, startup_timeout=30, **self._dht_kwargs(grpo_args)
+        )
         logger.info(f"🐝 Joining swarm with initial_peers = {initial_peers}")
 
         peer_id = str(dht.peer_id)
@@ -65,8 +68,5 @@ class TestnetGRPORunner(GRPORunner):
             grpo_args,
             training_args,
             initial_datasets_fn,
-            partial(
-                TestnetGRPOTrainer,
-                coordinator=self.coordinator
-            ),
+            partial(TestnetGRPOTrainer, coordinator=self.coordinator),
         )

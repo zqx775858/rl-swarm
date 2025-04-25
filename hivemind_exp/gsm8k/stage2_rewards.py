@@ -90,7 +90,7 @@ def proper_id_reward_func(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         p = prompts[0][-1]["content"]
@@ -124,7 +124,7 @@ def correctness_reward_func(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         p = prompts[0][-1]["content"]
@@ -194,9 +194,9 @@ def strict_format_reward_func(
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     pattern = r"^<compare>\n.*?\n</compare>\n<explain>\n.*?\n</explain>\n<identify>\n.*?\n</identify>\n$"
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         matches = [re.match(pattern, r) for r in responses]
@@ -227,11 +227,11 @@ def soft_format_reward_func(
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     pattern = (
         r"<compare>.*?</compare>\s*<explain>.*?</explain>\s*<identify>.*?</identify>"
     )
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         matches = [re.match(pattern, r) for r in responses]
@@ -261,7 +261,7 @@ def xmlcount_reward_func(
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     try:
         contents = [completion[0]["content"] for completion in completions]
     except (IndexError, KeyError, TypeError):
@@ -284,6 +284,7 @@ def xmlcount_reward_func(
             )
             f.write(out_line)
     return [count_xml(c) * weighting for c in contents]
+
 
 def top_k_cumulative_reward(
     prompts,
@@ -336,7 +337,7 @@ def hivemind_cumulative_reward(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     # Calculate individual rewards
     proper_id_reward = proper_id_reward_func(
         prompts, completions, answer, logging=logging

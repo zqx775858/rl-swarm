@@ -29,7 +29,7 @@ def merged_prev_stage_datasets(
     s: int,
     merge_fn,
     samples_fn,
-    dht_sample_limit = 200,
+    dht_sample_limit=200,
     check_interval: float = 5,
     wait_timeout: float = 10,
     log_tag=None,
@@ -43,9 +43,7 @@ def merged_prev_stage_datasets(
 
     # Retrieves and merges last stage samples locally and from DHT.
     def get_prev_rewards():
-        return get_dht_value(
-            dht, key=rewards_key(r, s - 1), beam_size=100
-        )
+        return get_dht_value(dht, key=rewards_key(r, s - 1), beam_size=100)
 
     prev_rewards: dict[str, Any] | None = get_prev_rewards()
     start_time = time.monotonic()
@@ -176,8 +174,12 @@ def gsm8k_stage_data(
                     faulty_completion = True
                 final_answer = output.get("final_agent_decision")
                 if final_answer is None:
-                    logger.warning(f"Missing 'final_agent_decision' key in output: {output}")
-                    output["final_agent_decision"] = "<no final agent decision available>"
+                    logger.warning(
+                        f"Missing 'final_agent_decision' key in output: {output}"
+                    )
+                    output["final_agent_decision"] = (
+                        "<no final agent decision available>"
+                    )
                     faulty_completion = True
                 prompts = [
                     [
@@ -190,7 +192,9 @@ def gsm8k_stage_data(
                 else:
                     final_answer = next(iter(output["final_agent_decision"].items()))[1]
                     completions = [[{"role": "assistant", "content": final_answer}]]
-                    cumulative_reward_2(prompts=prompts, completions=completions, **output)
+                    cumulative_reward_2(
+                        prompts=prompts, completions=completions, **output
+                    )
                     rewards[node_key] += sum(node.rewards)
 
         rewards = sorted(list(rewards.items()), key=lambda x: x[1], reverse=True)

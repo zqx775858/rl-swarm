@@ -45,7 +45,7 @@ def correctness_reward_func(
         return [0.0]
     if answer is None or not answer or not isinstance(answer, list):
         return [0.0] * len(completions)
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         q = prompts[0][-1]["content"]
@@ -78,16 +78,14 @@ def int_reward_func(completions, weighting=0.5, **kwargs) -> list[float]:
     return [1.0 * weighting if r.isdigit() else 0.0 for r in extracted_responses]
 
 
-def strict_format_reward_func(
-    completions, weighting=0.5, **kwargs
-) -> list[float]:
+def strict_format_reward_func(completions, weighting=0.5, **kwargs) -> list[float]:
     """Reward function that checks if the completion has a specific format."""
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     pattern = r"^<think>\n.*?\n</think>\n<answer>\n.*?\n</answer>\n$"
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         matches = [re.match(pattern, r) for r in responses]
@@ -102,9 +100,9 @@ def soft_format_reward_func(completions, weighting=0.5, **kwargs) -> list[float]
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     pattern = r"<think>.*?</think>\s*<answer>.*?</answer>"
-    
+
     try:
         responses = [completion[0]["content"] for completion in completions]
         matches = [re.match(pattern, r) for r in responses]
@@ -114,19 +112,18 @@ def soft_format_reward_func(completions, weighting=0.5, **kwargs) -> list[float]
     return [1.0 * weighting if match else 0.0 for match in matches]
 
 
-def xmlcount_reward_func(
-    completions, weighting=1.0, **kwargs
-) -> list[float]:
+def xmlcount_reward_func(completions, weighting=1.0, **kwargs) -> list[float]:
     # Validate inputs
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     try:
         contents = [completion[0]["content"] for completion in completions]
     except (IndexError, KeyError, TypeError):
         # Return default rewards if we can't extract the necessary data
         return [0.0] * len(completions)
     return [count_xml(c) * weighting for c in contents]
+
 
 def top_k_cumulative_reward(
     prompts,
@@ -143,9 +140,11 @@ def top_k_cumulative_reward(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     # Calculate individual rewards
-    correctness_reward = correctness_reward_func(prompts, completions, answer, logging=logging)
+    correctness_reward = correctness_reward_func(
+        prompts, completions, answer, logging=logging
+    )
     int_reward = int_reward_func(completions)
     strict_format_reward = strict_format_reward_func(completions)
     soft_format_reward = soft_format_reward_func(completions)
@@ -182,7 +181,7 @@ def hivemind_cumulative_reward(
         return [0.0]
     if completions is None or not completions or not isinstance(completions, list):
         return [0.0]
-    
+
     # Calculate individual rewards
     correctness_reward = correctness_reward_func(
         prompts, completions, answer, logging=logging

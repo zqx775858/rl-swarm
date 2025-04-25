@@ -63,11 +63,10 @@ def create_dht_and_trainer(tmp_path, node, stage_data, max_steps=1, initial_peer
     return dht, trainer
 
 
-
-
 ###############
 # SINGLE NODE #
 ###############
+
 
 def test_single_node_crash(tmp_path):
     node = HivemindNode.coordinator("test", CK)
@@ -75,7 +74,7 @@ def test_single_node_crash(tmp_path):
     def reward_func(**kwargs):
         return []
 
-    def error_fn (r, s):
+    def error_fn(r, s):
         raise ValueError("error")
 
     _, trainer = create_dht_and_trainer(
@@ -83,18 +82,19 @@ def test_single_node_crash(tmp_path):
         node,
         StageData(
             max_rounds=1,
-            round_winner_fn=lambda:[CK],
+            round_winner_fn=lambda: [CK],
             stages=[
                 SingleStageData(
                     name="0",
                     reward_funcs=[reward_func],
-                    datasets_fn= error_fn,
+                    datasets_fn=error_fn,
                 ),
             ],
         ),
     )
-    with pytest.raises(ValueError, match='error'):
+    with pytest.raises(ValueError, match="error"):
         trainer.train()
+
 
 def test_single_node_single_stage(tmp_path):
     node = HivemindNode.coordinator("test", CK)
@@ -107,7 +107,7 @@ def test_single_node_single_stage(tmp_path):
         node,
         StageData(
             max_rounds=1,
-            round_winner_fn=lambda:[CK],
+            round_winner_fn=lambda: [CK],
             stages=[
                 SingleStageData(
                     name="0",
@@ -138,7 +138,7 @@ def test_single_node_multi_stage(tmp_path):
         node,
         StageData(
             max_rounds=1,
-            round_winner_fn=lambda:[CK],
+            round_winner_fn=lambda: [CK],
             stages=[
                 SingleStageData(
                     name="0",
@@ -166,6 +166,7 @@ def test_single_node_multi_stage(tmp_path):
 
 # TODO: Fix flakiness for below tests.
 
+
 def test_multi_node_single_stage(tmp_path):
     max_rounds = 1
     max_steps = 2
@@ -176,7 +177,7 @@ def test_multi_node_single_stage(tmp_path):
 
         return StageData(
             max_rounds=max_rounds,
-            round_winner_fn=lambda:[CK],
+            round_winner_fn=lambda: [CK],
             stages=[
                 SingleStageData(
                     name="0",
@@ -244,7 +245,7 @@ def test_multi_node_multi_stage(tmp_path):
 
         return StageData(
             max_rounds=max_rounds,
-            round_winner_fn=lambda:[CK],
+            round_winner_fn=lambda: [CK],
             stages=[
                 SingleStageData(
                     name="0",
