@@ -32,10 +32,15 @@ def main():
     model_args, grpo_args, testnet_args, training_args = parser.parse_args_and_config()
 
     # Run main training loop.
+    contract_address = testnet_args.contract_address
     if org_id := testnet_args.modal_org_id:
-        runner = TestnetGRPORunner(ModalSwarmCoordinator(org_id, web3=setup_web3()))
+        runner = TestnetGRPORunner(
+            ModalSwarmCoordinator(setup_web3(), contract_address, org_id)
+        )
     elif priv_key := testnet_args.wallet_private_key:
-        runner = TestnetGRPORunner(WalletSwarmCoordinator(priv_key, web3=setup_web3()))
+        runner = TestnetGRPORunner(
+            WalletSwarmCoordinator(setup_web3(), contract_address, priv_key)
+        )
     else:
         runner = GRPORunner()
 

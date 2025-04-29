@@ -129,7 +129,6 @@ def estimate_peak_mem_percentage(
     model_name,
     grpo_config: GRPOConfig,
     quantization=Quantization.NONE,
-    peak_multiplier=1.25,
 ) -> float:
     lookup = vram_lookup[quantization]
 
@@ -141,7 +140,11 @@ def estimate_peak_mem_percentage(
             estimate = value * 1e9
             break
 
-    estimate *= peak_multiplier  # Buffer for peak usage.
+    # Buffer for peak usage.
+    if model_param_b >= 7:
+        estimate *= 1.25
+    else:
+        estimate *= 1.5
 
     # Find percentage of available memory.
     vllm_device = grpo_config.vllm_device

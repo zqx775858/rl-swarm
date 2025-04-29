@@ -14,7 +14,6 @@ SWARM_COORDINATOR_VERSION = "0.2"
 SWARM_COORDINATOR_ABI_JSON = (
     f"hivemind_exp/contracts/SwarmCoordinator_{SWARM_COORDINATOR_VERSION}.json"
 )
-SWARM_COORDINATOR_CONTRACT = "0x2fC68a233EF9E9509f034DD551FF90A79a0B8F82"
 
 MODAL_PROXY_URL = "http://localhost:3000/api/"
 
@@ -22,16 +21,12 @@ logger = logging.getLogger(__name__)
 
 
 class SwarmCoordinator(ABC):
-    @staticmethod
-    def coordinator_contract(web3: Web3):
+    def __init__(self, web3: Web3, contract_address: str, **kwargs) -> None:
+        self.web3 = web3
         with open(SWARM_COORDINATOR_ABI_JSON, "r") as f:
             contract_abi = json.load(f)["abi"]
 
-        return web3.eth.contract(address=SWARM_COORDINATOR_CONTRACT, abi=contract_abi)
-
-    def __init__(self, web3: Web3, **kwargs) -> None:
-        self.web3 = web3
-        self.contract = SwarmCoordinator.coordinator_contract(web3)
+        self.contract = web3.eth.contract(address=contract_address, abi=contract_abi)
         super().__init__(**kwargs)
 
     def register_peer(self, peer_id): ...
@@ -51,8 +46,8 @@ class SwarmCoordinator(ABC):
 
 
 class WalletSwarmCoordinator(SwarmCoordinator):
-    def __init__(self, private_key: str, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, web3: Web3, contract_address: str, private_key: str) -> None:
+        super().__init__(web3, contract_address)
         self.account = setup_account(self.web3, private_key)
 
     def _default_gas(self):
@@ -81,9 +76,9 @@ class WalletSwarmCoordinator(SwarmCoordinator):
 
 
 class ModalSwarmCoordinator(SwarmCoordinator):
-    def __init__(self, org_id: str, **kwargs) -> None:
+    def __init__(self, web3: Web3, contract_address: str, org_id: str) -> None:
+        super().__init__(web3, contract_address)
         self.org_id = org_id
-        super().__init__(**kwargs)
 
     def register_peer(self, peer_id):
         try:

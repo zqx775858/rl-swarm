@@ -30,6 +30,9 @@ HOST_MULTI_ADDRS=${HOST_MULTI_ADDRS:-$DEFAULT_HOST_MULTI_ADDRS}
 DEFAULT_IDENTITY_PATH="$ROOT"/swarm.pem
 IDENTITY_PATH=${IDENTITY_PATH:-$DEFAULT_IDENTITY_PATH}
 
+SMALL_SWARM_CONTRACT="0x69C6e1D608ec64885E7b185d39b04B491a71768C"
+BIG_SWARM_CONTRACT="0x6947c6E196a48B77eFa9331EC1E3e45f3Ee5Fd58"
+
 # Will ignore any visible GPUs if set.
 CPU_ONLY=${CPU_ONLY:-""}
 
@@ -86,6 +89,18 @@ while true; do
         [Yy]*)  CONNECT_TO_TESTNET=True && break ;;
         [Nn]*)  CONNECT_TO_TESTNET=False && break ;;
         *)  echo ">>> Please answer yes or no." ;;
+    esac
+done
+
+while true; do
+    echo -en $GREEN_TEXT
+    read -p ">> Which swarm would you like to join (small or big)? [S/b] " sb
+    echo -en $RESET_TEXT
+    sb=${sb:-S}  # Default to "S" if the user presses Enter
+    case $sb in
+        [Ss]*)  USE_BIG_SWARM=false && break ;;
+        [Bb]*)  USE_BIG_SWARM=true && break ;;
+        *)  echo ">>> Please answer small or big." ;;
     esac
 done
 
@@ -174,7 +189,11 @@ else
     # NVIDIA GPU found
     pip install -r "$ROOT"/requirements-gpu.txt
     pip install flash-attn --no-build-isolation
-    CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml"
+    if $USE_BIG_SWARM; then
+        CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-32b-bnb-4bit-deepseek-r1.yaml"
+    else
+        CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml"
+    fi
 fi
 
 echo_green ">> Done!"
@@ -199,10 +218,16 @@ echo_blue ">> Post about rl-swarm on X/twitter! --> https://tinyurl.com/swarmtwe
 echo_blue ">> And remember to star the repo on GitHub! --> https://github.com/gensyn-ai/rl-swarm"
 
 if [ -n "$ORG_ID" ]; then
+    if $USE_BIG_SWARM; then
+        SWARM_CONTRACT="$BIG_SWARM_CONTRACT"
+    else
+        SWARM_CONTRACT="$SMALL_SWARM_CONTRACT"
+    fi
     python -m hivemind_exp.gsm8k.train_single_gpu \
         --hf_token "$HUGGINGFACE_ACCESS_TOKEN" \
         --identity_path "$IDENTITY_PATH" \
         --modal_org_id "$ORG_ID" \
+        --contract_address "$SWARM_CONTRACT" \
         --config "$CONFIG_PATH"
 else
     python -m hivemind_exp.gsm8k.train_single_gpu \
