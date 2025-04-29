@@ -286,8 +286,13 @@ def populate_cache():
 
 
 def main(args):
+    contract_addr = os.getenv("CONTRACT_ADDRESS")
+
+    if contract_addr is None:
+        raise Exception("CONTRACT_ADDRESS is required in environment")
+
     coordinator = ModalSwarmCoordinator(
-        "", web3=setup_web3()
+        setup_web3(), contract_addr, org_id=""
     )  # Only allows contract calls
     initial_peers = coordinator.get_bootnodes()
 
