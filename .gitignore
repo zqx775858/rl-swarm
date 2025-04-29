@@ -8,7 +8,9 @@ temp-data/
 
 swarm.pem
 runs/
-.DS_Store
+model_output_samples/
+grpo_trainer_lora_model/
+unsloth_compiled_cache/
 
 node_modules/
 web/ui/dist/

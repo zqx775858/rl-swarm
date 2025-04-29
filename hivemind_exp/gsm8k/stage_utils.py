@@ -19,6 +19,7 @@ from hivemind_exp.gsm8k.stage_merger import (
     merge_stage1_question,
     merge_stage2_question,
 )
+from hivemind_exp.name_utils import get_name_from_peer_id
 from hivemind_exp.hivemind_utils import SingleStageData, StageData
 
 
@@ -35,7 +36,7 @@ def merged_prev_stage_datasets(
     log_tag=None,
 ):
     if not log_tag:
-        log_tag = node.key
+        log_tag = get_name_from_peer_id(node.key)
 
     logger = logging.getLogger(f"{__name__}:{log_tag}")
 

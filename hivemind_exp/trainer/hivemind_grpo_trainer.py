@@ -214,7 +214,7 @@ class HivemindGRPOTrainer:
         self.node.clear_stage_cache()
 
     def train_and_save(self, trainer, train_dataset):
-        for num_fails in range(MAX_TRAIN_FAILS):
+        for _ in range(MAX_TRAIN_FAILS):
             try:
                 train_result = trainer.train()
                 break

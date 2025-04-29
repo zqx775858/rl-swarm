@@ -1,7 +1,21 @@
+# ruff: noqa: E402
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Callable, Tuple
+
+import torch
+
+UNSLOTH_ENABLED = False
+try:
+    # Needs to be before trl!
+    if torch.cuda.is_available():
+        from unsloth import FastLanguageModel, PatchFastRL
+
+        PatchFastRL("GRPO", FastLanguageModel)
+        UNSLOTH_ENABLED = True
+except ImportError:
+    pass
 
 import hivemind
 from datasets import Dataset
@@ -12,6 +26,11 @@ from trl import GRPOConfig, ModelConfig
 from hivemind_exp.gsm8k.stage_utils import gsm8k_stage_data
 from hivemind_exp.hivemind_utils import HivemindNode
 from hivemind_exp.name_utils import get_name_from_peer_id
+from hivemind_exp.runner.memory_utils import (
+    Quantization,
+    estimate_peak_mem_percentage,
+    parse_quantization,
+)
 from hivemind_exp.trainer.hivemind_grpo_trainer import HivemindGRPOTrainer
 
 logger = logging.getLogger(__name__)
@@ -44,7 +63,48 @@ class GRPORunner:
         model_init_kwargs["use_cache"] = (
             False if args.gradient_checkpointing else model_init_kwargs.get("use_cache")
         )
-        return AutoModelForCausalLM.from_pretrained(model_name, **model_init_kwargs)
+
+        quantization = parse_quantization(model_name)
+        if args.vllm_gpu_memory_utilization != 0.9: # Not default
+            self.peak_memory_percentage = args.vllm_gpu_memory_utilization
+        else:
+            self.peak_memory_percentage=estimate_peak_mem_percentage(
+                model_name, args, quantization
+            )
+        if UNSLOTH_ENABLED:
+            model = FastLanguageModel.from_pretrained(
+                model_name,
+                load_in_4bit=quantization == Quantization._4BIT,
+                load_in_8bit=False,
+                fast_inference=True,
+                use_exact_model_name=True,
+                gpu_memory_utilization=self.peak_memory_percentage,
+                **model_init_kwargs,
+            )[0]
+            return FastLanguageModel.get_peft_model(
+                model,
+                r=64,
+                target_modules=[
+                    "q_proj",
+                    "k_proj",
+                    "v_proj",
+                    "o_proj",
+                    "gate_proj",
+                    "up_proj",
+                    "down_proj",
+                ],
+                lora_alpha=16,
+                lora_dropout=0,  # Supports any, but = 0 is optimized
+                bias="none",  # Supports any, but = "none" is optimized
+                # [NEW] "unsloth" uses 30% less VRAM, fits 2x larger batch sizes!
+                use_gradient_checkpointing="unsloth",  # True or "unsloth" for very long context # type: ignore
+                random_state=123,
+            )
+        else:
+            return AutoModelForCausalLM.from_pretrained(
+                model_name,
+                **model_init_kwargs,
+            )
 
     def get_tokenizer_name(self, model_args: ModelConfig, script_args: GRPOArguments):
         if script_args.tokenizer_name_or_path:
@@ -101,10 +161,6 @@ class GRPORunner:
         logger.debug(f"Model parameters {model_args}")
         logger.debug(f"Training/evaluation parameters {training_args}")
 
-        batch_size = 2
-        training_args.per_device_train_batch_size = batch_size
-        training_args.num_generations = batch_size
-
         ############################
         # Log into HF hub if wanted
         ############################
@@ -150,6 +206,7 @@ class GRPORunner:
 
         stage_data = gsm8k_stage_data(dht, node, train_dataset, test_dataset)
         stage_data.max_rounds = grpo_args.max_rounds
+
         trainer = trainer_factory_fn(
             dht=dht,
             node=node,

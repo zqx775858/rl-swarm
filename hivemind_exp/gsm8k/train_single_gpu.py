@@ -1,5 +1,8 @@
 import logging
 
+# Needs to be before trl!
+from hivemind_exp.runner.grpo_runner import GRPOArguments, GRPORunner
+
 import colorlog
 from trl import GRPOConfig, ModelConfig, TrlParser
 
@@ -13,7 +16,6 @@ from hivemind_exp.runner.gensyn.testnet_grpo_runner import (
     TestnetGRPOArguments,
     TestnetGRPORunner,
 )
-from hivemind_exp.runner.grpo_runner import GRPOArguments, GRPORunner
 
 
 def main():

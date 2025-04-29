@@ -1,5 +1,6 @@
-import sys
 import platform
+import sys
+
 import psutil
 
 DIVIDER = "[---------] SYSTEM INFO [---------]"
@@ -31,16 +32,17 @@ def print_system_info():
     print(f"  Available: {vm.available / (1024**3):.2f} GB")
     print(f"  Used: {vm.used / (1024**3):.2f} GB")
 
-    print("\nDisk Information:")
+    print("\nDisk Information (>80%):")
     partitions = psutil.disk_partitions()
     for partition in partitions:
-        print(f"  Device: {partition.device}")
-        print(f"    Mount point: {partition.mountpoint}")
         try:
             disk_usage = psutil.disk_usage(partition.mountpoint)
-            print(f"      Total size: {disk_usage.total / (1024**3):.2f} GB")
-            print(f"      Used: {disk_usage.used / (1024**3):.2f} GB")
-            print(f"      Free: {disk_usage.free / (1024**3):.2f} GB")
+            if disk_usage.used / disk_usage.total > 0.8:
+                print(f"  Device: {partition.device}")
+                print(f"    Mount point: {partition.mountpoint}")
+                print(f"      Total size: {disk_usage.total / (1024**3):.2f} GB")
+                print(f"      Used: {disk_usage.used / (1024**3):.2f} GB")
+                print(f"      Free: {disk_usage.free / (1024**3):.2f} GB")
         except PermissionError:
             print("      Permission denied")
 

@@ -165,6 +165,7 @@ fi
 
 echo_green ">> Getting requirements..."
 
+pip install --upgrade pip
 if [ -n "$CPU_ONLY" ] || ! command -v nvidia-smi &> /dev/null; then
     # CPU-only mode or no NVIDIA GPU found
     pip install -r "$ROOT"/requirements-cpu.txt
@@ -172,6 +173,7 @@ if [ -n "$CPU_ONLY" ] || ! command -v nvidia-smi &> /dev/null; then
 else
     # NVIDIA GPU found
     pip install -r "$ROOT"/requirements-gpu.txt
+    pip install flash-attn --no-build-isolation
     CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml"
 fi
 
