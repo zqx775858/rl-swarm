@@ -10,7 +10,7 @@ class TestnetGRPOTrainer(HivemindGRPOTrainer):
         self.coordinator.submit_reward(
             self.node.round_num,
             self.node.stage_num,
-            int(trainer.stage_rewards),
+            max(0, int(trainer.stage_rewards)),
             self.node.key,
         )
 
