@@ -78,6 +78,7 @@ class GRPORunner:
                 load_in_8bit=False,
                 fast_inference=True,
                 use_exact_model_name=True,
+                max_seq_length=4096,
                 gpu_memory_utilization=self.peak_memory_percentage,
                 **model_init_kwargs,
             )[0]
