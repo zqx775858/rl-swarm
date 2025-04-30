@@ -10,7 +10,7 @@ ALCHEMY_URL = "https://gensyn-testnet.g.alchemy.com/public"
 
 MAINNET_CHAIN_ID = 685685
 
-SWARM_COORDINATOR_VERSION = "0.2"
+SWARM_COORDINATOR_VERSION = "0.4"
 SWARM_COORDINATOR_ABI_JSON = (
     f"hivemind_exp/contracts/SwarmCoordinator_{SWARM_COORDINATOR_VERSION}.json"
 )
@@ -26,12 +26,14 @@ class SwarmCoordinator(ABC):
         with open(SWARM_COORDINATOR_ABI_JSON, "r") as f:
             contract_abi = json.load(f)["abi"]
 
-        self.contract = web3.eth.contract(address=contract_address, abi=contract_abi)
+        self.contract = web3.eth.contract(address=contract_address, abi=contract_abi)  # type: ignore
         super().__init__(**kwargs)
 
     def register_peer(self, peer_id): ...
 
     def submit_winners(self, round_num, winners): ...
+
+    def submit_reward(self, round_num, stage_num, reward, peer_id): ...
 
     def get_bootnodes(self):
         return self.contract.functions.getBootnodes().call()
@@ -74,7 +76,17 @@ class WalletSwarmCoordinator(SwarmCoordinator):
             ).build_transaction(self._default_gas()),
         )
 
+    def submit_reward(self, round_num, stage_num, reward, peer_id):
+        send_chain_txn(
+            self.web3,
+            self.account,
+            lambda: self.contract.functions.submitReward(
+                round_num, stage_num, reward, peer_id
+            ).build_transaction(self._default_gas()),
+        )
 
+
+# TODO: Uncomment detailed logs once you can disambiguate 500 errors.
 class ModalSwarmCoordinator(SwarmCoordinator):
     def __init__(self, web3: Web3, contract_address: str, org_id: str) -> None:
         super().__init__(web3, contract_address)
@@ -88,23 +100,39 @@ class ModalSwarmCoordinator(SwarmCoordinator):
                 raise
 
             logger.debug("Unknown error calling register-peer endpoint! Continuing.")
-            # TODO: Verify actual contract errors.
             # logger.info(f"Peer ID [{peer_id}] is already registered! Continuing.")
+
+    def submit_reward(self, round_num, stage_num, reward, peer_id):
+        try:
+            send_via_api(
+                self.org_id,
+                "submit-reward",
+                {
+                    "roundNumber": round_num,
+                    "stageNumber": stage_num,
+                    "reward": reward,
+                    "peerId": peer_id,
+                },
+            )
+        except requests.exceptions.HTTPError as e:
+            if e.response is None or e.response.status_code != 500:
+                raise
+
+            logger.debug("Unknown error calling submit_reward endpoint! Continuing.")
+            # logger.info("Reward already submitted for this round/stage! Continuing.")
 
     def submit_winners(self, round_num, winners):
         try:
-            args = (
+            send_via_api(
                 self.org_id,
                 "submit-winner",
                 {"roundNumber": round_num, "winners": winners},
             )
-            send_via_api(*args)
         except requests.exceptions.HTTPError as e:
             if e.response is None or e.response.status_code != 500:
                 raise
 
             logger.debug("Unknown error calling submit-winner endpoint! Continuing.")
-            # TODO: Verify actual contract errors.
             # logger.info("Winners already submitted for this round! Continuing.")
 
 

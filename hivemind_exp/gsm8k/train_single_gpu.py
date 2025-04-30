@@ -34,10 +34,12 @@ def main():
     # Run main training loop.
     contract_address = testnet_args.contract_address
     if org_id := testnet_args.modal_org_id:
+        assert contract_address, "Contract address must be set!"
         runner = TestnetGRPORunner(
             ModalSwarmCoordinator(setup_web3(), contract_address, org_id)
         )
     elif priv_key := testnet_args.wallet_private_key:
+        assert contract_address, "Contract address must be set!"
         runner = TestnetGRPORunner(
             WalletSwarmCoordinator(setup_web3(), contract_address, priv_key)
         )

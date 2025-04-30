@@ -5,6 +5,15 @@ from hivemind_exp.trainer.hivemind_grpo_trainer import HivemindGRPOTrainer
 
 
 class TestnetGRPOTrainer(HivemindGRPOTrainer):
+    def train_stage_and_save(self, trainer, train_dataset):
+        super().train_stage_and_save(trainer, train_dataset)
+        self.coordinator.submit_reward(
+            self.node.round_num,
+            self.node.stage_num,
+            int(trainer.stage_rewards),
+            self.node.key,
+        )
+
     def __init__(self, coordinator: SwarmCoordinator, **kwargs) -> None:
         self.coordinator = coordinator
         super().__init__(**kwargs)
