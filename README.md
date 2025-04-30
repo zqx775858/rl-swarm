@@ -25,6 +25,7 @@ Your hardware requirements will vary depending on which swarm and model you choo
 
 - arm64 or x86 CPU with minimum 16gb ram (note that if you run other applications during training it might crash training).
 
+
 OR
 
 - CUDA devices (officially supported):
@@ -110,14 +111,12 @@ In the following two scenarios, everything will work (i.e. you will have an on-c
 
 In the following two scenarios, it will not work (i.e. you won't have an on-chain identity linked with your RL Swarm peer training):
 
-- If you lose your original `swarm.pem` and create another one but try to link it to a previously used `email address`.
 - If you keep your `swarm.pem` and try to link it to an `email address` distinct from the one with which it was first registered.
 
 Therefore, you should do these actions in the following scenarios
 
-- **Signed up with `email address`, generated `swarm.pem`, BUT lost `swarm.pem`**: run from scratch again with a new email address (you can use the `gmail +` notation for this).
-- **Signed up with `email address`, generated `swarm.pem`, kept `swarm.pem`** -> you can re-run a single node using this pair if you've still got them both but not multiple.
-- **You want to run multiple nodes at once**: run them all from scratch with the same email address and generate new `swarm.pem`s for them all.
+- **Signed up with `email address`, generated `swarm.pem`, BUT lost `swarm.pem`** OR **You want to run multiple nodes at once**: run from scratch with the same email address and generate a new `swarm.pem`. 
+- **Signed up with `email address`, generated `swarm.pem`, kept `swarm.pem`** -> you can re-run a single node using this pair if you've still got them both.
 
 ## Troubleshooting
 
