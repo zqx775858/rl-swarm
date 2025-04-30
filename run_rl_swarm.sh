@@ -105,20 +105,19 @@ while true; do
 done
 if [ "$USE_BIG_SWARM" = true ]; then
     SWARM_CONTRACT="$BIG_SWARM_CONTRACT"
-    while true; do
-        echo -en $GREEN_TEXT
-        read -p ">> How many parameters (in billions)? [32, 72] " pc
-        echo -en $RESET_TEXT
-        pc=${pc:-32}  # Default to "S" if the user presses Enter
-        case $pc in
-            32)  BIG_SWARM_PARAM_B=32 && break ;;
-            72)  BIG_SWARM_PARAM_B=72 && break ;;
-            *)  echo ">>> Please answer in [32, 72]." ;;
-        esac
-    done
 else
     SWARM_CONTRACT="$SMALL_SWARM_CONTRACT"
 fi
+while true; do
+    echo -en $GREEN_TEXT
+    read -p ">> How many parameters (in billions)? [0.5, 1.5, 7, 32, 72] " pc
+    echo -en $RESET_TEXT
+    pc=${pc:-0.5}  # Default to "0.5" if the user presses Enter
+    case $pc in
+        0.5 | 1.5 | 7 | 32 | 72) PARAM_B=$pc && break ;;
+        *)  echo ">>> Please answer in [0.5, 1.5, 7, 32, 72]." ;;
+    esac
+done
 
 if [ "$CONNECT_TO_TESTNET" = true ]; then
     # Run modal_login server.
@@ -215,11 +214,15 @@ else
     # NVIDIA GPU found
     pip install -r "$ROOT"/requirements-gpu.txt
     pip install flash-attn --no-build-isolation
+
+    case "$PARAM_B" in
+        32 | 72) CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-${PARAM_B}b-bnb-4bit-deepseek-r1.yaml" && break ;;
+        0.5 | 1.5 | 7) CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-${PARAM_B}b-deepseek-r1.yaml" && break ;;
+        *)  echo ">>> Please answer in [0.5, 1.5, 7, 32, 72]." ;;
+    esac
     if [ "$USE_BIG_SWARM" = true ]; then
-        CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-${BIG_SWARM_PARAM_B}b-bnb-4bit-deepseek-r1.yaml"
         GAME="dapo"
     else
-        CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml"
         GAME="gsm8k"
     fi
 fi
