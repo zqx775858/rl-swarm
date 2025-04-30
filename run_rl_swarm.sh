@@ -94,13 +94,13 @@ done
 
 while true; do
     echo -en $GREEN_TEXT
-    read -p ">> Which swarm would you like to join (small or big)? [S/b] " sb
+    read -p ">> Which swarm would you like to join (Math (A) or Math Hard (B))? [A/b] " ab
     echo -en $RESET_TEXT
-    sb=${sb:-S}  # Default to "S" if the user presses Enter
-    case $sb in
-        [Ss]*)  USE_BIG_SWARM=false && break ;;
+    ab=${ab:-A}  # Default to "A" if the user presses Enter
+    case $ab in
+        [Aa]*)  USE_BIG_SWARM=false && break ;;
         [Bb]*)  USE_BIG_SWARM=true && break ;;
-        *)  echo ">>> Please answer small or big." ;;
+        *)  echo ">>> Please answer A or B." ;;
     esac
 done
 if [ "$USE_BIG_SWARM" = true ]; then

@@ -8,12 +8,12 @@ Models:
    - Qwen 2.5 0.5B
    - Qwen 2.5 1.5B
    - Qwen 2.5 7B
-   - Qwen 2.5 32B
-   - Qwen 2.5 72B
+   - Qwen 2.5 32B (4 bit)
+   - Qwen 2.5 72B (4 bit)
 
 Swarms:
-   - Small (GSM8K dataset)
-   - Big (DAPO-Math 17K dataset)
+   - Math (GSM8K dataset)
+   - Math Hard (DAPO-Math 17K dataset)
 
 Soon you will be able to create your own swarms with unique data sets, and eventually connect multiple swarms together to train powerful models across domains.
 
@@ -21,7 +21,7 @@ Soon you will be able to create your own swarms with unique data sets, and event
 
 Your hardware requirements will vary depending on which swarm and model you choose.  Users with less powerful hardware should select a smaller model (e.g. Qwen 0.5B or 1.5B) and smaller dataset (GSM8K). Users with more powerful hardware can select a larger model (e.g. Qwen 7B, 32B or 72B) and larger dataset (DAPO-Math 17K).  The requirements for each are listed below:     
 
-**Small model (0.5B or 1.5B) + Small swarm (GSM8K dataset)**
+**Small model (0.5B or 1.5B) + Math (GSM8K dataset)**
 
 - arm64 or x86 CPU with minimum 16gb ram (note that if you run other applications during training it might crash training).
 
@@ -33,7 +33,7 @@ OR
     - A100
     - H100
 
-**Big model (7B, 32B or 72B) + Big swarm (DAPO-Math 17K dataset)**
+**Big model (7B, 32B or 72B) + Math Hard (DAPO-Math 17K dataset)**
 
 - Recommended:
     - A100 (80GB) 
@@ -69,7 +69,7 @@ Please answer 'Y' (or just press enter), N is provided as an alternative flow bu
 
 ### Select your Swarm
 
-To select your swarm, answer 'B' to join the Big Swarm (DAPO-Math 17K dataset) or 'S' to join the Small Swarm (GSM8K dataset). 
+To select your swarm, answer 'B' to join the Math Hard (DAPO-Math 17K dataset) or 'S' to join the Math (GSM8K dataset). 
 
 ### Select your Model
 
@@ -174,8 +174,3 @@ Therefore, you should do these actions in the following scenarios
     - Use floating point 32 instead of bfloat16 to train your model. This can be changed in the config for your device, i.e. `./hivemind_exp/configs/<directory_relevant_to_your_device>/grpo-qwen-2.5-0.5b-deepseek-r1.yaml`.
 
 - **How can I optimsie `rl-swarm` for my device**? open the `hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml`. Note that this is for the gpu and not cpu configuration. You can then edit parameters that optimsie the training run. For example, try adjusting the `vllm_gpu_memory_utilization`. Note that optimal settings will vary by device.
-
-## Swarm UI
-To launch the Swarm UI, run `docker-compose up --build` and open `0.0.0.0:8080` in your browser.
-
-See the [web/README](./web/README.md) for more details.
