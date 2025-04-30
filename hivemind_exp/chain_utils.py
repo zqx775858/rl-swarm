@@ -31,7 +31,7 @@ class SwarmCoordinator(ABC):
 
     def register_peer(self, peer_id): ...
 
-    def submit_winners(self, round_num, winners): ...
+    def submit_winners(self, round_num, winners, peer_id): ...
 
     def submit_reward(self, round_num, stage_num, reward, peer_id): ...
 
@@ -67,12 +67,12 @@ class WalletSwarmCoordinator(SwarmCoordinator):
             ),
         )
 
-    def submit_winners(self, round_num, winners):
+    def submit_winners(self, round_num, winners, peer_id):
         send_chain_txn(
             self.web3,
             self.account,
             lambda: self.contract.functions.submitWinners(
-                round_num, winners
+                round_num, winners, peer_id
             ).build_transaction(self._default_gas()),
         )
 
@@ -121,12 +121,12 @@ class ModalSwarmCoordinator(SwarmCoordinator):
             logger.debug("Unknown error calling submit_reward endpoint! Continuing.")
             # logger.info("Reward already submitted for this round/stage! Continuing.")
 
-    def submit_winners(self, round_num, winners):
+    def submit_winners(self, round_num, winners, peer_id):
         try:
             send_via_api(
                 self.org_id,
                 "submit-winner",
-                {"roundNumber": round_num, "winners": winners},
+                {"roundNumber": round_num, "winners": winners, "peerId": peer_id},
             )
         except requests.exceptions.HTTPError as e:
             if e.response is None or e.response.status_code != 500:
