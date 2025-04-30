@@ -1,12 +1,27 @@
 # RL Swarm
 
-RL Swarm is an open source system for peer-to-peer reinforcement learning over the internet. Running a swarm node allows you to train your personal model against the swarm intelligence. Each swarm performs RL reasoning as a group, with a gossiping system (Hivemind) for collaborative improvement between models. You can also connect your node to the Gensyn Testnet, to receive an on-chain identity that tracks your progress over time.
+RL Swarm is a peer-to-peer system for reinforcement learning. It allows you to train a model in a collaborative fashion with other models in the swarm, leveraging their collective intelligence. It is open source and permissionless, meaning you can run it on a consumer laptop at home or on a powerful GPU in the cloud. You can also connect your model to the Gensyn Testnet, to receive an on-chain identity that tracks your progress over time.
 
-RL Swarm is fully open and permissionless, meaning you can run it on a basic consumer laptop at home or on a powerful GPU in the cloud. You can also experiment with different models to see which ones perform best.
+There are currently multiple swarms running on the Testnet, each training on a different data set. The current list of available models and swarms include:
+
+Models:
+   - Qwen 2.5 0.5B
+   - Qwen 2.5 1.5B
+   - Qwen 2.5 7B
+   - Qwen 2.5 32B
+   - Qwen 2.5 72B
+
+Swarms:
+   - Small (GSM8K dataset)
+   - Big (DAPO-Math 17K dataset)
+
+Soon you will be able to create your own swarms with unique data sets, and eventually connect multiple swarms together to train powerful models across domains.
 
 ## Requirements
 
-Ensure that you are using a supported machine/device/environment:
+Your hardware requirements will vary depending on which swarm and model you choose.  Users with less powerful hardware should select a smaller model (e.g. Qwen 0.5B or 1.5B) and smaller dataset (GSM8K). Users with more powerful hardware can select a larger model (e.g. Qwen 7B, 32B or 72B) and larger dataset (DAPO-Math 17K).  The requirements for each are listed below:     
+
+**Small model (0.5B or 1.5B) + Small swarm (GSM8K dataset)**
 
 - arm64 or x86 CPU with minimum 16gb ram (note that if you run other applications during training it might crash training).
 
@@ -18,15 +33,23 @@ OR
     - A100
     - H100
 
-WITH
+**Big model (7B, 32B or 72B) + Big swarm (DAPO-Math 17K dataset)**
 
--  Python >=3.10 (for Mac, you will likely need to upgrade)
+- Recommended:
+    - A100 (80GB) 
+    - H100 (80GB)
+
+
+
+***
+
+With either configuration, you will need Python >=3.10 (for Mac, you will likely need to upgrade).
 
 ## ⚠️ Please read before continuing ⚠️
 
 This software is **experimental** and provided as-is for users who are interested in using (or helping to develop) an early version of the Gensyn Protocol for training models.
 
-If you care a lot about on-chain participation, you **must** read the [Identity Management](#identity-management) section below.
+If you care about on-chain participation, you **must** read the [Identity Management](#identity-management) section below.
 
 If you encounter issues, please first check [Troubleshooting](#troubleshooting). If you cannot find a solution there, please check if there is an open (or closed) [Issue](../../issues). If there is no relevant issue, please file one and include 1) all relevant logs, 2) information about your device (e.g. which GPU, if relevant), and 3) your operating system information.
 
@@ -44,6 +67,13 @@ source .venv/bin/activate
 
 Please answer 'Y' (or just press enter), N is provided as an alternative flow but isn't currently maintained.
 
+### Select your Swarm
+
+To select your swarm, answer 'B' to join the Big Swarm (DAPO-Math 17K dataset) or 'S' to join the Small Swarm (GSM8K dataset). 
+
+### Select your Model
+
+To select your model, answer '0.5', '1.5', '7', '32', or '72' to pick the parameter count. 
 
 ### Login
 
@@ -53,11 +83,11 @@ Please answer 'Y' (or just press enter), N is provided as an alternative flow bu
 
 ### Huggingface
 
-Optionally pair your HF account by using your HF token - [more here](https://huggingface.co/docs/hub/en/security-tokens).
+If you would like to upload your model to Hugging Face, enter your Hugging Face access token when prompted. You can generate one from your Hugging Face account, under [Access Tokens](https://huggingface.co/docs/hub/en/security-tokens).
 
 ### Initial peering and training
 
-From this stage onward your device will be used to train a hyperscale machine learning system. You should see your peer register and vote on-chain [here](https://gensyn-testnet.explorer.alchemy.com/address/0x2fC68a233EF9E9509f034DD551FF90A79a0B8F82?tab=logs).
+From this stage onward your device will begin training. You should see your peer register and vote on-chain [here](https://gensyn-testnet.explorer.alchemy.com/address/0x2fC68a233EF9E9509f034DD551FF90A79a0B8F82?tab=logs).
 
 
 ## Identity management
