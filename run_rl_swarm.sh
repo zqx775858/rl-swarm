@@ -194,7 +194,13 @@ if [ "$CONNECT_TO_TESTNET" = true ]; then
     done
 
     ENV_FILE="$ROOT"/modal-login/.env
-    sed -i "3s/.*/SWARM_CONTRACT_ADDRESS=$SWARM_CONTRACT/" "$ENV_FILE"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS version
+        sed -i '' "3s/.*/SWARM_CONTRACT_ADDRESS=$SWARM_CONTRACT/" "$ENV_FILE"
+    else
+        # Linux version
+        sed -i "3s/.*/SWARM_CONTRACT_ADDRESS=$SWARM_CONTRACT/" "$ENV_FILE"
+    fi
 fi
 
 echo_green ">> Getting requirements..."
