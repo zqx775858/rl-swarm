@@ -1,6 +1,6 @@
 # RL Swarm
 
-RL Swarm is a peer-to-peer system for reinforcement learning. It allows you to train a model in a collaborative fashion with other models in the swarm, leveraging their collective intelligence. It is open source and permissionless, meaning you can run it on a consumer laptop at home or on a powerful GPU in the cloud. You can also connect your model to the Gensyn Testnet, to receive an on-chain identity that tracks your progress over time.
+RL Swarm is a peer-to-peer system for reinforcement learning. It allows you to train a model collaboratively with other models in the swarm, leveraging their collective intelligence. It is open source and permissionless, meaning you can run it on a consumer laptop at home or on a powerful GPU in the cloud. You can also connect your model to the Gensyn Testnet, to receive an on-chain identity that tracks your progress over time.
 
 There are currently multiple swarms running on the Testnet, each training on a different data set. The current list of available models and swarms include:
 
@@ -98,7 +98,7 @@ On-chain identity is managed via an Alchemy modal sign-in screen. You need to su
 
 During the initial set-up process, you will also create a `swarm.pem` file which maintains the identity of your peer. This is then registered on chain using the EOA wallet hosted in Alchemy, triggered using your local api keys. This links the `email address` (and corresponding EOA in Alchemy) + `swarm.pem` forever and they are both effectively burned if one is lost.
 
-If you are running multiple nodes, and want to track progress on-chain (i.e. not just run RL Swarm itself and train a model), you must sign up again for each node - do not use the same `swarm.pem`, `userApiKey`, `userData.json`, `email address`, or copy the data between the nodes. If you do so, your progress won't be tracked on-chain. If you do any of these things, your node will work fine and train from the swarm however, but this will not be reflected on chain.
+**If you want to link multiple nodes to a single EOA**, simply sign up each node using the same email address. You will get a new peer ID for each node, however they will all be linked to the same EOA that your email is tied to.
 
 **Please note**: if you are using a fork of this repo, or a service organised by someone else (e.g. a 'one click deployment' provider) the identity management flow below is not guaranteed.
 
@@ -117,7 +117,7 @@ Therefore, you should do these actions in the following scenarios
 
 - **Signed up with `email address`, generated `swarm.pem`, BUT lost `swarm.pem`**: run from scratch again with a new email address (you can use the `gmail +` notation for this).
 - **Signed up with `email address`, generated `swarm.pem`, kept `swarm.pem`** -> you can re-run a single node using this pair if you've still got them both but not multiple.
-- **You want to run multiple nodes at once**: run them all from scratch with different email addresses and generate new `swarm.pem`s for them all (i.e. do not share email address or `swarm.pem` between different running instances).
+- **You want to run multiple nodes at once**: run them all from scratch with the same email address and generate new `swarm.pem`s for them all.
 
 ## Troubleshooting
 
