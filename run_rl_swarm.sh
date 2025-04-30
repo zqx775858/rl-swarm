@@ -86,8 +86,8 @@ while true; do
     echo -en $RESET_TEXT
     yn=${yn:-Y}  # Default to "Y" if the user presses Enter
     case $yn in
-        [Yy]*)  CONNECT_TO_TESTNET=True && break ;;
-        [Nn]*)  CONNECT_TO_TESTNET=False && break ;;
+        [Yy]*)  CONNECT_TO_TESTNET=true && break ;;
+        [Nn]*)  CONNECT_TO_TESTNET=false && break ;;
         *)  echo ">>> Please answer yes or no." ;;
     esac
 done
@@ -103,13 +103,24 @@ while true; do
         *)  echo ">>> Please answer small or big." ;;
     esac
 done
-if $USE_BIG_SWARM; then
+if [ "$USE_BIG_SWARM" = true ]; then
     SWARM_CONTRACT="$BIG_SWARM_CONTRACT"
+    while true; do
+        echo -en $GREEN_TEXT
+        read -p ">> How many parameters (in billions)? [32, 72] " pc
+        echo -en $RESET_TEXT
+        pc=${pc:-32}  # Default to "S" if the user presses Enter
+        case $pc in
+            32)  BIG_SWARM_PARAM_B=32 && break ;;
+            72)  BIG_SWARM_PARAM_B=72 && break ;;
+            *)  echo ">>> Please answer in [32, 72]." ;;
+        esac
+    done
 else
     SWARM_CONTRACT="$SMALL_SWARM_CONTRACT"
 fi
 
-if [ "$CONNECT_TO_TESTNET" = "True" ]; then
+if [ "$CONNECT_TO_TESTNET" = true ]; then
     # Run modal_login server.
     echo "Please login to create an Ethereum Server Wallet"
     cd modal-login
@@ -193,14 +204,17 @@ if [ -n "$CPU_ONLY" ] || ! command -v nvidia-smi &> /dev/null; then
     # CPU-only mode or no NVIDIA GPU found
     pip install -r "$ROOT"/requirements-cpu.txt
     CONFIG_PATH="$ROOT/hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml" # TODO: Fix naming.
+    GAME="gsm8k"
 else
     # NVIDIA GPU found
     pip install -r "$ROOT"/requirements-gpu.txt
     pip install flash-attn --no-build-isolation
-    if $USE_BIG_SWARM; then
-        CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-32b-bnb-4bit-deepseek-r1.yaml"
+    if [ "$USE_BIG_SWARM" = true ]; then
+        CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-${BIG_SWARM_PARAM_B}b-bnb-4bit-deepseek-r1.yaml"
+        GAME="dapo"
     else
         CONFIG_PATH="$ROOT/hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml"
+        GAME="gsm8k"
     fi
 fi
 
@@ -231,7 +245,8 @@ if [ -n "$ORG_ID" ]; then
         --identity_path "$IDENTITY_PATH" \
         --modal_org_id "$ORG_ID" \
         --contract_address "$SWARM_CONTRACT" \
-        --config "$CONFIG_PATH"
+        --config "$CONFIG_PATH" \
+        --game "$GAME"
 else
     python -m hivemind_exp.gsm8k.train_single_gpu \
         --hf_token "$HUGGINGFACE_ACCESS_TOKEN" \
@@ -239,7 +254,8 @@ else
         --public_maddr "$PUB_MULTI_ADDRS" \
         --initial_peers "$PEER_MULTI_ADDRS" \
         --host_maddr "$HOST_MULTI_ADDRS" \
-        --config "$CONFIG_PATH"
+        --config "$CONFIG_PATH" \
+        --game "$GAME"
 fi
 
 wait  # Keep script running until Ctrl+C

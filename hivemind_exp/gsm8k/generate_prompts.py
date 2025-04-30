@@ -189,7 +189,7 @@ def pick_k_cols(cols, datum, current_stage, default_k=15, method="top_k"):
 def generate_stage2_user_prompt(datum, cols):
     sp = []
     sp.append(f"The question we were given is: {datum['question']}" + "  \n\n")
-    sp.append(f"The following answers to this question were suggested:" + " \n")
+    sp.append("The following answers to this question were suggested:" + " \n")
     subsampled_cols = pick_k_cols(
         cols, datum, 2
     )  # Subsample columns to stop prompt bloating
@@ -209,7 +209,7 @@ def generate_stage3_user_prompt(datum, cols):
     sp = []
     sp.append(f"{datum['stage2_prompt']}" + "  \n")
     sp.append(
-        f"After comparing these answers, the following feedback was given about which answer is best:"
+        "After comparing these answers, the following feedback was given about which answer is best:"
         + " \n"
     )
     subsampled_cols = pick_k_cols(
@@ -273,21 +273,6 @@ def get_gsm8k_questions_with_stage1and2_answers(data) -> Dataset:
     return data
 
 
-def get_stage1_samples():
-    # Load dataset from Hugging Face Hub
-    dataset_id = "openai/gsm8k"
-    train_dataset = load_dataset(dataset_id, "main")["train"]
-    test_dataset = load_dataset(dataset_id, "main")["test"]
-    # #TODO: Add ability to select a random subset of num_samples samples if desired
-    # if num_samples != -1:
-    #   dataset = dataset.shuffle(seed=42).select(range(num_samples))
-
-    # convert our dataset to the r1 prompt
-    train_dataset = get_gsm8k_questions(train_dataset)
-    test_dataset = get_gsm8k_questions(test_dataset)
-    return train_dataset, test_dataset
-
-
 def fill_unknown_answers_opinions(values):
     FILLED_FIELDS = ("agent_answers", "agent_opinion")
 
@@ -309,12 +294,20 @@ def fill_unknown_answers_opinions(values):
                     val[field].update({agent: "No answer received..."})
 
 
+def get_stage1_samples():
+    # Load dataset from Hugging Face Hub
+    dataset_id = "openai/gsm8k"
+    train_dataset = load_dataset(dataset_id, "main")["train"]  # type: ignore
+    test_dataset = load_dataset(dataset_id, "main")["test"]  # type: ignore
+
+    # convert our dataset to the r1 prompt
+    train_dataset = get_gsm8k_questions(train_dataset)
+    test_dataset = get_gsm8k_questions(test_dataset)
+    return train_dataset, test_dataset
+
 def get_stage2_samples(values, test_size=0.1):
     fill_unknown_answers_opinions(values)
     dataset = Dataset.from_generator(stage2_generator, gen_kwargs={"values": values})
-    # #TODO: Add ability to select a random subset of num_samples samples if desired
-    # if num_samples != -1:
-    #   dataset = dataset.shuffle(seed=42).select(range(num_samples))
 
     # convert our dataset to the r1 prompt
     dataset = get_gsm8k_questions_with_stage1_answers(dataset)
@@ -324,9 +317,6 @@ def get_stage2_samples(values, test_size=0.1):
 def get_stage3_samples(values, test_size=0.1):
     fill_unknown_answers_opinions(values)
     dataset = Dataset.from_generator(stage3_generator, gen_kwargs={"values": values})
-    # #TODO: Add ability to select a random subset of num_samples samples if desired
-    # if num_samples != -1:
-    #   dataset = dataset.shuffle(seed=42).select(range(num_samples))
 
     # convert our dataset to the r1 prompt
     dataset = get_gsm8k_questions_with_stage1and2_answers(dataset)

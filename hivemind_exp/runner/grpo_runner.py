@@ -23,7 +23,7 @@ from huggingface_hub import login
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig, ModelConfig
 
-from hivemind_exp.gsm8k.stage_utils import gsm8k_stage_data
+from hivemind_exp.gsm8k.stages import gsm8k_stage_data
 from hivemind_exp.hivemind_utils import HivemindNode
 from hivemind_exp.name_utils import get_name_from_peer_id
 from hivemind_exp.runner.memory_utils import (
@@ -51,6 +51,7 @@ class GRPOArguments:
     tokenizer_name_or_path: str | None = None
     number_of_data_samples: int = 50000
     public_maddr: str | None = None
+    game: str = "gsm8k"
 
     # Hugging Face Hub arguments
     hf_token: str | None = None
@@ -84,7 +85,7 @@ class GRPORunner:
             )[0]
             return FastLanguageModel.get_peft_model(
                 model,
-                r=64,
+                r=16,
                 target_modules=[
                     "q_proj",
                     "k_proj",
@@ -205,6 +206,7 @@ class GRPORunner:
         else:
             node = HivemindNode.coordinator(model_name_or_path, str(dht.peer_id))
 
+        # TODO: Extract this and generalize.
         stage_data = gsm8k_stage_data(dht, node, train_dataset, test_dataset)
         stage_data.max_rounds = grpo_args.max_rounds
 

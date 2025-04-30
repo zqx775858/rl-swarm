@@ -141,7 +141,7 @@ def estimate_peak_mem_percentage(
             break
 
     # Buffer for peak usage.
-    if model_param_b >= 7:
+    if model_param_b > 32:
         estimate *= 1.25
     else:
         estimate *= 1.5

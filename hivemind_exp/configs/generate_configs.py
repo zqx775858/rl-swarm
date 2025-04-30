@@ -4,7 +4,7 @@ import tempfile
 import yaml
 
 
-def output_file(args, param_b, name_suffix=""):
+def output_file(args, yaml_header, param_b, name_suffix=""):
     if param_b == int(param_b):
         param_b = int(param_b)
 
@@ -22,7 +22,7 @@ def output_file(args, param_b, name_suffix=""):
 
         with open(output_yaml, "w") as of:
             print(f"Writing to {output_yaml}")
-            for filename in (args.yaml_header, tf.name):
+            for filename in (yaml_header, tf.name):
                 with open(filename, "r") as infile:
                     of.write(infile.read())
 
@@ -37,6 +37,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--yaml_header", type=str, required=True, help="Path to YAML header file."
+    )
+    parser.add_argument(
+        "--yaml_big_header", type=str, required=True, help="Path to big YAML header file."
     )
     parser.add_argument(
         "--yaml_output_dir", type=str, help="Directory to write output YAML files."
@@ -65,7 +68,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     for p in args.param_counts:
-        output_file(args, p)
+        output_file(args, args.yaml_header, p)
 
     for p in args.param_counts_4bit:
-        output_file(args, p, "-bnb-4bit")
+        output_file(args, args.yaml_big_header, p, "-bnb-4bit")
