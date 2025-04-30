@@ -9,6 +9,6 @@ python3 $ROOT_DIR/../generate_configs.py \
     --yaml_header "$ROOT_DIR/grpo-header.yaml" \
     --yaml_big_header "$ROOT_DIR/grpo-big-header.yaml" \
     --yaml_output_dir "$ROOT_DIR" \
-    --model_prefix "unsloth/Qwen2.5" \
+    --model_prefix "Gensyn/Qwen2.5" \
     --param_counts 0.5 1.5 7 \
     --param_counts_4bit 32 72
