@@ -5,17 +5,20 @@ from datetime import datetime
 from typing import Callable, Tuple
 
 import torch
+import os
 
-UNSLOTH_ENABLED = False
-try:
-    # Needs to be before trl!
-    if torch.cuda.is_available():
-        from unsloth import FastLanguageModel, PatchFastRL
+UNSLOTH_ENABLED = (os.getenv('RL_SWARM_UNSLOTH', 'True') == 'True')
+if UNSLOTH_ENABLED:
+    try:
+        # Needs to be before trl!
+        if torch.cuda.is_available():
+            from unsloth import FastLanguageModel, PatchFastRL
 
-        PatchFastRL("GRPO", FastLanguageModel)
-        UNSLOTH_ENABLED = True
-except ImportError:
-    pass
+            PatchFastRL("GRPO", FastLanguageModel)
+        else:
+            UNSLOTH_ENABLED = False
+    except ImportError:
+        UNSLOTH_ENABLED = False
 
 import hivemind
 from datasets import Dataset
@@ -52,6 +55,7 @@ class GRPOArguments:
     tokenizer_name_or_path: str | None = None
     number_of_data_samples: int = 50000
     public_maddr: str | None = None
+    enable_unsloth: bool = True
     game: str = "gsm8k"
 
     # Hugging Face Hub arguments
@@ -59,20 +63,21 @@ class GRPOArguments:
 
 
 class GRPORunner:
-    def get_model(self, args: GRPOConfig, model_name: str):
-        model_init_kwargs = args.model_init_kwargs or {}
+    def get_model(self, grpo_args: GRPOArguments, training_args: GRPOConfig, model_name: str):
+        model_init_kwargs = training_args.model_init_kwargs or {}
         # Disable caching if gradient checkpointing is enabled (not supported)
         model_init_kwargs["use_cache"] = (
-            False if args.gradient_checkpointing else model_init_kwargs.get("use_cache")
+            False if training_args.gradient_checkpointing else model_init_kwargs.get("use_cache")
         )
 
         quantization = parse_quantization(model_name)
-        if args.vllm_gpu_memory_utilization != 0.9: # Not default
-            self.peak_memory_percentage = args.vllm_gpu_memory_utilization
+        if training_args.vllm_gpu_memory_utilization != 0.9: # Not default
+            self.peak_memory_percentage = training_args.vllm_gpu_memory_utilization
         else:
             self.peak_memory_percentage=estimate_peak_mem_percentage(
-                model_name, args, quantization
+                model_name, training_args, quantization
             )
+        training_args.vllm_gpu_memory_utilization = self.peak_memory_percentage
         if UNSLOTH_ENABLED:
             model = FastLanguageModel.from_pretrained(
                 model_name,
@@ -200,7 +205,7 @@ class GRPORunner:
         #########################
         model_name_or_path = model_args.model_name_or_path
         assert model_name_or_path
-        model = self.get_model(training_args, model_name_or_path)
+        model = self.get_model(grpo_args, training_args, model_name_or_path)
 
         initial_peers = grpo_args.initial_peers
         if initial_peers:
