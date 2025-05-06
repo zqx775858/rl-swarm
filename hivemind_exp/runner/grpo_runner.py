@@ -55,7 +55,6 @@ class GRPOArguments:
     tokenizer_name_or_path: str | None = None
     number_of_data_samples: int = 50000
     public_maddr: str | None = None
-    enable_unsloth: bool = True
     game: str = "gsm8k"
 
     # Hugging Face Hub arguments
@@ -190,6 +189,7 @@ class GRPORunner:
             tokenizer.pad_token = tokenizer.eos_token
 
         tokenizer._tokenizer.enable_truncation(MAX_SEQ_LENGTH)
+
         #########################
         # Create DHT via Hivemind
         #########################
