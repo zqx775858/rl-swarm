@@ -80,44 +80,126 @@ cat << "EOF"
 
 EOF
 
+# 检测可用的GPU数量
+GPU_COUNT=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
+echo_green ">> 检测到 $GPU_COUNT 个GPU"
+
+# 检查RL-swarm目录
+RL_SWARM_DIR="$PWD"
+if [ ! -f "$RL_SWARM_DIR/run_rl_swarm.sh" ]; then
+    echo_green ">> 请在RL-swarm主目录中运行此脚本"
+    exit 1
+fi
+
+# 创建工作目录
+WORK_DIR="$HOME/rl-swarm-multi-gpu"
+mkdir -p "$WORK_DIR"
+echo_green ">> 创建工作目录: $WORK_DIR"
+
+# 询问用户是否连接到Testnet
 while true; do
     echo -en $GREEN_TEXT
-    read -p ">> Would you like to connect to the Testnet? [Y/n] " yn
+    read -p ">> 是否连接到Testnet? [Y/n] " yn
     echo -en $RESET_TEXT
-    yn=${yn:-Y}  # Default to "Y" if the user presses Enter
+    yn=${yn:-Y}  # 默认为"Y"
     case $yn in
         [Yy]*)  CONNECT_TO_TESTNET=true && break ;;
         [Nn]*)  CONNECT_TO_TESTNET=false && break ;;
-        *)  echo ">>> Please answer yes or no." ;;
+        *)  echo ">>> 请回答yes或no." ;;
     esac
 done
 
+# 询问用户选择哪个swarm
 while true; do
     echo -en $GREEN_TEXT
-    read -p ">> Which swarm would you like to join (Math (A) or Math Hard (B))? [A/b] " ab
+    read -p ">> 您想加入哪个swarm (Math (A) 或 Math Hard (B))? [A/b] " ab
     echo -en $RESET_TEXT
-    ab=${ab:-A}  # Default to "A" if the user presses Enter
+    ab=${ab:-A}  # 默认为"A"
     case $ab in
         [Aa]*)  USE_BIG_SWARM=false && break ;;
         [Bb]*)  USE_BIG_SWARM=true && break ;;
-        *)  echo ">>> Please answer A or B." ;;
+        *)  echo ">>> 请回答A或B." ;;
     esac
 done
-if [ "$USE_BIG_SWARM" = true ]; then
-    SWARM_CONTRACT="$BIG_SWARM_CONTRACT"
-else
-    SWARM_CONTRACT="$SMALL_SWARM_CONTRACT"
-fi
+
+# 询问用户选择参数大小
 while true; do
     echo -en $GREEN_TEXT
-    read -p ">> How many parameters (in billions)? [0.5, 1.5, 7, 32, 72] " pc
+    read -p ">> 您想使用多少参数(单位:十亿)? [0.5, 1.5, 7, 32, 72] " pc
     echo -en $RESET_TEXT
-    pc=${pc:-0.5}  # Default to "0.5" if the user presses Enter
+    pc=${pc:-0.5}  # 默认为"0.5"
     case $pc in
         0.5 | 1.5 | 7 | 32 | 72) PARAM_B=$pc && break ;;
-        *)  echo ">>> Please answer in [0.5, 1.5, 7, 32, 72]." ;;
+        *)  echo ">>> 请在[0.5, 1.5, 7, 32, 72]中选择." ;;
     esac
 done
+
+# 询问Hugging Face token
+echo -en $GREEN_TEXT
+read -p ">> 您想将训练的模型推送到Hugging Face Hub吗? [y/N] " yn
+echo -en $RESET_TEXT
+yn=${yn:-N} # 默认为"N"
+case $yn in
+    [Yy]*) read -p "请输入您的Hugging Face访问令牌: " HUGGINGFACE_ACCESS_TOKEN ;;
+    [Nn]*) HUGGINGFACE_ACCESS_TOKEN="None" ;;
+    *) echo ">>> 没有给出答案，因此不会将模型推送到Hugging Face Hub" && HUGGINGFACE_ACCESS_TOKEN="None" ;;
+esac
+
+# 为每个GPU创建和启动实例
+for ((i=0; i<$GPU_COUNT; i++)); do
+    GPU_DIR="$WORK_DIR/gpu$i"
+    mkdir -p "$GPU_DIR"
+    
+    # 复制必要的文件
+    cp -r "$RL_SWARM_DIR"/* "$GPU_DIR/"
+    
+    # 修改modal-login的端口
+    PORT=$((3000 + $i))
+    if [ -f "$GPU_DIR/modal-login/.env" ]; then
+        sed -i "s/PORT=.*/PORT=$PORT/" "$GPU_DIR/modal-login/.env"
+    else
+        echo "PORT=$PORT" > "$GPU_DIR/modal-login/.env"
+    fi
+    
+    # 创建启动脚本
+    cat > "$GPU_DIR/start_gpu$i.sh" << EOF
+#!/bin/bash
+export CUDA_VISIBLE_DEVICES=$i
+cd "$GPU_DIR"
+./run_rl_swarm.sh
+EOF
+    
+    chmod +x "$GPU_DIR/start_gpu$i.sh"
+    
+    echo_green ">> GPU $i 的配置已创建在 $GPU_DIR"
+    echo_blue ">> 要启动GPU $i，请运行: $GPU_DIR/start_gpu$i.sh"
+    echo_blue ">> 登录界面将在端口 $PORT 上可用"
+done
+
+# 创建一个一键启动所有GPU的脚本
+cat > "$WORK_DIR/start_all_gpus.sh" << EOF
+#!/bin/bash
+GREEN_TEXT="\033[32m"
+RESET_TEXT="\033[0m"
+
+echo -e "\${GREEN_TEXT}>> 启动所有GPU实例...\${RESET_TEXT}"
+
+for ((i=0; i<$GPU_COUNT; i++)); do
+    GPU_DIR="$WORK_DIR/gpu\$i"
+    echo -e "\${GREEN_TEXT}>> 启动GPU \$i...\${RESET_TEXT}"
+    gnome-terminal --title="RL-Swarm GPU \$i" -- bash -c "cd \$GPU_DIR && ./start_gpu\$i.sh; exec bash"
+    sleep 5  # 给每个实例一些启动时间
+done
+
+echo -e "\${GREEN_TEXT}>> 所有GPU实例已启动!\${RESET_TEXT}"
+EOF
+
+chmod +x "$WORK_DIR/start_all_gpus.sh"
+
+echo_green ">> 配置完成!"
+echo_blue ">> 要一键启动所有GPU实例，请运行: $WORK_DIR/start_all_gpus.sh"
+echo_blue ">> 注意: 您需要为每个实例使用相同的电子邮件登录，以便它们链接到同一个账户"
+echo_blue ">> 登录端口将从3000开始，每个GPU递增1 (GPU 0: 3000, GPU 1: 3001, ...)"
 
 if [ "$CONNECT_TO_TESTNET" = true ]; then
     # Run modal_login server.
@@ -226,21 +308,6 @@ else
 fi
 
 echo_green ">> Done!"
-
-HF_TOKEN=${HF_TOKEN:-""}
-if [ -n "${HF_TOKEN}" ]; then # Check if HF_TOKEN is already set and use if so. Else give user a prompt to choose.
-    HUGGINGFACE_ACCESS_TOKEN=${HF_TOKEN}
-else
-    echo -en $GREEN_TEXT
-    read -p ">> Would you like to push models you train in the RL swarm to the Hugging Face Hub? [y/N] " yn
-    echo -en $RESET_TEXT
-    yn=${yn:-N} # Default to "N" if the user presses Enter
-    case $yn in
-        [Yy]*) read -p "Enter your Hugging Face access token: " HUGGINGFACE_ACCESS_TOKEN ;;
-        [Nn]*) HUGGINGFACE_ACCESS_TOKEN="None" ;;
-        *) echo ">>> No answer was given, so NO models will be pushed to Hugging Face Hub" && HUGGINGFACE_ACCESS_TOKEN="None" ;;
-    esac
-fi
 
 echo_green ">> Good luck in the swarm!"
 echo_blue ">> Post about rl-swarm on X/twitter! --> https://tinyurl.com/swarmtweet"
